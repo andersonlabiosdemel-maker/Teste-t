@@ -1,0 +1,211 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId
+    // Fields:
+    //   - id: string (required)
+    //   - adminId: string (required)
+    //   - name: string (required)
+    //   - email: string (required)
+    //   - role: string (required, enum: SUPER_ADMIN, ADMIN, MANAGER, SELLER, MOTOBOY)
+    //   - store: string (required)
+    //   - createdAt: string (required)
+    //
+    // Collection: products
+    // Fields: id, adminId, name, price, category, stock, etc.
+    //
+    // Collection: sales
+    // Fields: id, adminId, userId, totalAmount, items, createdAt, store, status
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Super Admin check by UID, Email or Role in document
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        request.auth.uid == "31gdNhLqtZPpB8gU8W3DWVAwIR82" ||
+        (request.auth.token.email != null && 
+         (request.auth.token.email == "anderson-coelhos@hotmail.com" || 
+          request.auth.token.email == "andersonlabiosdemel@gmail.com")) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN')
+      );
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function currentUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        isSuperAdmin() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN' || 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN'))
+      );
+    }
+
+    function getAdminId() {
+      return isSuperAdmin() ? request.auth.uid : 
+             (exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.adminId : request.auth.uid);
+    }
+
+    function isSameAdmin(data) {
+      return isSuperAdmin() || (data.adminId == getAdminId());
+    }
+
+    // Validation Helpers
+    function isValidString(val, min, max) {
+      return val is string && val.size() >= min && val.size() <= max;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'adminId', 'name', 'email', 'role', 'store', 'createdAt']) &&
+             isValidString(data.name, 2, 100) &&
+             isValidEmail(data.email) &&
+             data.email.size() < 254 &&
+             data.role in ['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'SELLER', 'MOTOBOY'] &&
+             isValidString(data.store, 1, 100) &&
+             isValidString(data.id, 1, 128) &&
+             isValidString(data.adminId, 1, 128);
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'adminId', 'name', 'price', 'category', 'stock']) &&
+             isValidString(data.name, 1, 200) &&
+             data.price is number && data.price >= 0 &&
+             data.stock is number &&
+             isValidString(data.category, 1, 100) &&
+             (!('description' in data) || isValidString(data.description, 0, 5000)) &&
+             (!('imageUrl' in data) || isValidString(data.imageUrl, 0, 1000000));
+    }
+
+    function isValidSale(data) {
+      return data.keys().hasAll(['id', 'adminId', 'userId', 'totalAmount', 'createdAt', 'store', 'status']) &&
+             data.totalAmount is number &&
+             data.status in ['COMPLETED', 'SAVED'] &&
+             data.items is list && data.items.size() <= 100;
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /test/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow list: if (request.query.limit == 1) || 
+                     (isAuthenticated() && (resource == null || isSameAdmin(resource.data)));
+      
+      allow get: if isOwner(userId) || 
+                    (isAuthenticated() && (resource == null || isSameAdmin(resource.data)));
+      
+      allow create: if isAuthenticated() && (
+        isOwner(userId) || 
+        (isAdmin() && isSameAdmin(request.resource.data))
+      );
+      
+      allow update: if isAuthenticated() && (
+        isOwner(userId) || 
+        (isAdmin() && isSameAdmin(resource.data))
+      );
+      
+      allow delete: if isAdmin() && isSameAdmin(resource.data);
+    }
+
+    match /products/{productId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data));
+      allow create: if isAdmin() && isSameAdmin(request.resource.data) && isValidProduct(request.resource.data);
+      allow update: if isAdmin() && (resource == null || isSameAdmin(resource.data)) && isValidProduct(request.resource.data);
+      allow delete: if isAdmin() && (resource == null || isSameAdmin(resource.data));
+    }
+
+    match /categories/{categoryId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data));
+      allow create: if isAdmin() && isSameAdmin(request.resource.data);
+      allow update, delete: if isAdmin() && (resource == null || isSameAdmin(resource.data));
+    }
+
+    match /sales/{saleId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data) || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && (isSameAdmin(request.resource.data) || request.resource.data.userId == request.auth.uid) && isValidSale(request.resource.data);
+      allow update, delete: if isAdmin() && (resource == null || isSameAdmin(resource.data) || resource.data.userId == request.auth.uid) && isValidSale(resource.data);
+    }
+
+    match /stores/{storeId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data));
+      allow create: if isAdmin() && isSameAdmin(request.resource.data);
+      allow update, delete: if isAdmin() && (resource == null || isSameAdmin(resource.data));
+    }
+    
+    match /caixaSessions/{sessionId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data) || resource.data.openedById == request.auth.uid);
+      allow create: if isAuthenticated() && (isSameAdmin(request.resource.data) || request.resource.data.openedById == request.auth.uid);
+      allow update, delete: if isAuthenticated() && (resource == null || isSameAdmin(resource.data) || resource.data.openedById == request.auth.uid);
+    }
+    
+    match /deliveryOrders/{orderId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data) || (resource != null && 'motoboyId' in resource.data && resource.data.motoboyId == request.auth.uid));
+      allow create: if isAuthenticated() && isSameAdmin(request.resource.data);
+      allow update, delete: if isAuthenticated() && (resource == null || isSameAdmin(resource.data) || (resource != null && 'motoboyId' in resource.data && resource.data.motoboyId == request.auth.uid));
+    }
+
+    match /stats/{statsId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (resource == null || isSameAdmin(resource.data));
+      allow create, update: if isAuthenticated() && isSameAdmin(request.resource.data);
+    }
+
+    match /catalogs/{adminId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (isSuperAdmin() || adminId == request.auth.uid || adminId == getAdminId());
+      allow create, update: if isAuthenticated() && 
+                               (isSuperAdmin() || adminId == request.auth.uid || adminId == getAdminId()) &&
+                               request.resource.data.adminId == adminId;
+    }
+
+    match /company_configs/{adminId} {
+      allow read, write: if isAuthenticated() && isSuperAdmin();
+      allow read: if isAuthenticated() && (isSuperAdmin() || adminId == request.auth.uid || adminId == getAdminId());
+      allow create, update: if isAuthenticated() && 
+                               (isSuperAdmin() || adminId == request.auth.uid || adminId == getAdminId()) &&
+                               request.resource.data.adminId == adminId;
+    }
+  }
+}

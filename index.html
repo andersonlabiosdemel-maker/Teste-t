@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mix PDV</title>
+    <meta name="theme-color" content="#00BFA5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mix PDV" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Mix PDV" />
+    <meta name="msapplication-TileColor" content="#00BFA5" />
+    <meta name="description" content="Sistema completo de PDV, Estoque e Delivery" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f9fafb;
+        color: #1e293b;
+      }
+      .leaflet-container {
+        width: 100%;
+        height: 100%;
+        border-radius: 0.5rem;
+      }
+      /* Garantia de visibilidade para todos os inputs do sistema */
+      input, select, textarea {
+        color: #334155 !important; /* slate-700 */
+      }
+      input::placeholder {
+        color: #94a3b8 !important; /* slate-400 */
+      }
+    </style>
+    <link rel="stylesheet" href="/index.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

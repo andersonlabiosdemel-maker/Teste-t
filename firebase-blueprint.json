@@ -1,0 +1,271 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user with credentials and role",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "password": { "type": "string" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "ADMIN", "MANAGER", "SELLER", "MOTOBOY"] },
+        "store": { "type": "string" },
+        "isSystemUser": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "subscriptionPlan": { "type": "string" },
+        "isOnline": { "type": "boolean" },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" }
+      },
+      "required": ["id", "adminId", "name", "email", "role", "store", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Product in inventory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "store": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "promotionalPrice": { "type": "number" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "stock": { "type": "number" },
+        "unit": { "type": "string" },
+        "barcode": { "type": "string" },
+        "description": { "type": "string" },
+        "isHighlighted": { "type": "boolean" },
+        "showInCatalog": { "type": "boolean" },
+        "differentPricesByStore": { "type": "boolean" },
+        "manageStock": { "type": "boolean" },
+        "minStock": { "type": "number" },
+        "minStockEnabled": { "type": "boolean" },
+        "stockHistory": { "type": "array", "items": { "$ref": "StockHistory" } }
+      },
+      "required": ["id", "adminId", "name", "price", "category", "stock"]
+    },
+    "StockHistory": {
+      "title": "StockHistory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["ENTRADA", "SAIDA"] },
+        "quantity": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "balance": { "type": "number" },
+        "responsible": { "type": "string" }
+      }
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "store": { "type": "string" },
+        "name": { "type": "string" },
+        "order": { "type": "number" },
+        "productCount": { "type": "number" }
+      },
+      "required": ["id", "adminId", "name", "order"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "A completed or saved sale",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "saleNumber": { "type": "number" },
+        "adminId": { "type": "string" },
+        "userId": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "amountPaid": { "type": "number" },
+        "changeAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["CASH", "DEBIT_CARD", "CREDIT_CARD", "PIX"] },
+        "items": { "type": "array", "items": { "$ref": "SaleItem" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "store": { "type": "string" },
+        "status": { "type": "string", "enum": ["COMPLETED", "SAVED"] }
+      },
+      "required": ["id", "adminId", "userId", "totalAmount", "createdAt", "store", "status"]
+    },
+    "SaleItem": {
+      "title": "SaleItem",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "price": { "type": "number" },
+        "quantity": { "type": "number" },
+        "subtotal": { "type": "number" }
+      }
+    },
+    "Store": {
+      "title": "Store",
+      "description": "A physical store location",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "phone": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adminId", "name", "isActive", "createdAt"]
+    },
+    "CaixaSession": {
+      "title": "CaixaSession",
+      "description": "Cash register session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "openedById": { "type": "string" },
+        "openedByName": { "type": "string" },
+        "closedById": { "type": "string" },
+        "closedByName": { "type": "string" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "initialValue": { "type": "number" },
+        "finalValue": { "type": "number" },
+        "expectedValue": { "type": "number" },
+        "totalSalesCash": { "type": "number" },
+        "totalSalesPix": { "type": "number" },
+        "totalSalesCard": { "type": "number" },
+        "movements": { "type": "array", "items": { "$ref": "CaixaMovement" } },
+        "status": { "type": "string", "enum": ["OPEN", "CLOSED"] },
+        "store": { "type": "string" }
+      },
+      "required": ["id", "adminId", "openedById", "startTime", "initialValue", "status", "store"]
+    },
+    "CaixaMovement": {
+      "title": "CaixaMovement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["IN", "OUT"] },
+        "amount": { "type": "number" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "DeliveryOrder": {
+      "title": "DeliveryOrder",
+      "description": "Delivery order details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "saleId": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "PREPARING", "ON_ROUTE", "DELIVERED", "CANCELLED"] },
+        "street": { "type": "string" },
+        "number": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "city": { "type": "string" },
+        "deliveryFee": { "type": "number" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "total": { "type": "number" },
+        "motoboyId": { "type": "string" }
+      },
+      "required": ["id", "adminId", "saleId", "status", "street", "customerName", "total"]
+    },
+    "SaleStats": {
+      "title": "SaleStats",
+      "description": "Aggregated sales statistics for a period",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "store": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "totalFaturamento": { "type": "number" },
+        "totalVendas": { "type": "number" },
+        "productRanking": { "type": "object" },
+        "userRanking": { "type": "object" },
+        "paymentDistribution": { "type": "object" }
+      },
+      "required": ["id", "adminId", "store", "date"]
+    },
+    "ProductCatalog": {
+      "title": "ProductCatalog",
+      "description": "Aggregated product catalog for fast loading",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "products": { "type": "array", "items": { "$ref": "Product" } },
+        "categories": { "type": "array", "items": { "$ref": "Category" } },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adminId", "products", "lastUpdated"]
+    },
+    "CompanyConfig": {
+      "title": "CompanyConfig",
+      "description": "Aggregated company configuration (users, stores) for fast loading",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "users": { "type": "array", "items": { "$ref": "User" } },
+        "stores": { "type": "array", "items": { "$ref": "Store" } },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adminId", "users", "stores", "lastUpdated"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and credentials"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Inventory products"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product categories"
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Sales records"
+    },
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Store locations"
+    },
+    "/caixaSessions/{sessionId}": {
+      "schema": "CaixaSession",
+      "description": "Cash register sessions"
+    },
+    "/deliveryOrders/{orderId}": {
+      "schema": "DeliveryOrder",
+      "description": "Delivery order tracking"
+    },
+    "/stats/{statsId}": {
+      "schema": "SaleStats",
+      "description": "Aggregated sales statistics"
+    },
+    "/catalogs/{adminId}": {
+      "schema": "ProductCatalog",
+      "description": "Aggregated product catalog for fast loading"
+    },
+    "/company_configs/{adminId}": {
+      "schema": "CompanyConfig",
+      "description": "Aggregated company configuration for fast loading"
+    }
+  }
+}

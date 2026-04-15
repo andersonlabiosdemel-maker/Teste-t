@@ -1,0 +1,49 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D2B5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00BFA5;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="10" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background Rounded Square -->
+  <rect width="512" height="512" rx="120" fill="url(#tealGradient)"/>
+  
+  <!-- Inner Rounded Square (lighter) -->
+  <rect x="106" y="106" width="300" height="300" rx="80" fill="white" fill-opacity="0.15"/>
+  
+  <!-- Shopping Cart Group -->
+  <g filter="url(#shadow)">
+    <!-- Cart Body -->
+    <path d="M160 180H195L220 340H360L390 220H210" stroke="white" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- Cart Handle -->
+    <path d="M130 180H160" stroke="white" stroke-width="22" stroke-linecap="round"/>
+    
+    <!-- Wheels -->
+    <circle cx="235" cy="385" r="18" fill="white"/>
+    <circle cx="345" cy="385" r="18" fill="white"/>
+    
+    <!-- Items inside/above -->
+    <rect x="260" y="140" width="24" height="24" rx="4" fill="white" transform="rotate(15 260 140)"/>
+    <rect x="320" y="115" width="20" height="20" rx="4" fill="white" transform="rotate(-10 320 115)"/>
+    <rect x="290" y="175" width="16" height="16" rx="3" fill="white" transform="rotate(45 290 175)"/>
+    
+    <!-- Grid lines in cart -->
+    <path d="M240 230V310" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M280 230V310" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M320 230V310" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M220 270H375" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+  </g>
+</svg>

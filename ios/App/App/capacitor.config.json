@@ -1,0 +1,9 @@
+{
+	"appId": "com.mixpdv.app",
+	"appName": "Mix PDV",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	},
+	"packageClassList": []
+}

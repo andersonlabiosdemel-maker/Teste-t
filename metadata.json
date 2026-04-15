@@ -1,0 +1,10 @@
+{
+  "name": "mix PDV novo",
+  "description": "Sistema PDV Multiplataforma (Web, Android e iOS) com suporte a múltiplos usuários e lojas.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera",
+    "microphone",
+    "bluetooth"
+  ]
+}
